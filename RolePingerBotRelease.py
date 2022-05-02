@@ -2,11 +2,10 @@ import json
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler        
 
 def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Этот бот умеет создавать роли и пинговать всех людей, которые добавлены к этой роли\n\nОчень рекомендуется создать роль all и добавить туда всех участников чата, чтобы бот не считал их несуществующей ролью")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Этот бот умеет создавать роли и пинговать всех людей, которые добавлены к этой роли\n\nОчень рекомендуется создать роль all и добавить туда всех участников чата, чтобы бот не считал их несуществующей ролью.\nЧтобы вызывать людей по + для игры в свою игру, создайте роль \"gosvoyak\"")
     fulllist = read()
     if (str(update.effective_chat.id) in fulllist) == False:
         fulllist[str(update.effective_chat.id)] = {}
-        print("started")
         writetojson(fulllist)
 
 def read():
@@ -16,8 +15,6 @@ def read():
 
 
 def writetojson(data):
-    #print(fulllist)
-    #fulllist[str(chatId)] = par
     with open('rolebot.json', 'w') as fp:
         json.dump(data, fp)
 
@@ -29,11 +26,8 @@ def ping(update, context):
     isInAll = False
     listofusers = []
     text = update.message.text
-    #print("text read")
     if text[0] == '+':
-        print("tryin' to gosvoyak")
         if "gosvoyak" in roles:
-            print("gosvoyak in roles")
             listofusers = roles["gosvoyak"]
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text = "Роли gosvoyak не существует")
@@ -45,12 +39,9 @@ def ping(update, context):
                     listofusers = roles[s]
         else:
             if "all" in roles:
-                print("all in roles")
                 for s in roles["all"]:
-                    print(s)
                     if s[1:] == text:
                         isInAll = True
-                        print("got")
                         break;
             if isInAll == False:
                 context.bot.send_message(chat_id=update.effective_chat.id, text = "Такой роли не существует")
@@ -111,8 +102,6 @@ def deletefromrole(update, context):
     name = arr[0]
     role = arr[1]
     roles[role].remove(name)
-    print(role)
-    print(name)
     fulllist[str(update.effective_chat.id)] = roles
     writetojson(fulllist)
     context.bot.send_message(chat_id=update.effective_chat.id, text = "Пользователь " + name + " удалён из роли "+ role)
@@ -143,23 +132,22 @@ def listofroles(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text = txt)
     
 def test(update, context):
-    print("Ищу")
     fulllist = read()
     if (str(update.effective_chat.id) in fulllist) == False:
         fulllist[str(update.effective_chat.id)] = {}
     roles = fulllist[str(update.effective_chat.id)]
     text = update.message.text[13:]
-    print (text)
     if text in roles:
         txt = ""
         for role in roles:
             if text == role:
                 users = roles[text]
         for user in users:
-            txt += user[1:]
+            if user[0] == '@':
+                txt += user[1:]
+            else:
+                txt += user
             txt += " "
-            print("text+")
-            print("txt = " + txt)
         if txt != "":
             context.bot.send_message(chat_id=update.effective_chat.id, text = txt)
         else:
