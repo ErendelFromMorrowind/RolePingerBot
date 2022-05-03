@@ -40,7 +40,9 @@ def ping(update, context):
         else:
             if "all" in roles:
                 for s in roles["all"]:
-                    if s[1:] == text:
+                    print(text)
+                    print(text[:len(text)-1])
+                    if (s[1:] == text) or (s[1:] == text[:len(text)-1]):
                         isInAll = True
                         break;
             if isInAll == False:
