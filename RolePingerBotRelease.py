@@ -1,11 +1,13 @@
 import json
+import time
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler        
-
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Этот бот умеет создавать роли и пинговать всех людей, которые добавлены к этой роли\n\nОчень рекомендуется создать роль all и добавить туда всех участников чата, чтобы бот не считал их несуществующей ролью.\nЧтобы вызывать людей по + для игры в свою игру, создайте роль \"gosvoyak\"")
     fulllist = read()
+    print(fulllist[str(update.effective_chat.id)])
     if (str(update.effective_chat.id) in fulllist) == False:
         fulllist[str(update.effective_chat.id)] = {}
+        fulllist[str(update.effective_chat.id)]["svoyak"] = True
         writetojson(fulllist)
 
 def read():
@@ -13,6 +15,42 @@ def read():
         fulllist = json.load(fp)
     return fulllist
 
+def turnsvoyak(update, context):
+    fulllist = read()
+    chatinfo = fulllist[str(update.effective_chat.id)]
+    if "svoyak?" in chatinfo:
+        print("in")
+        print(chatinfo["svoyak?"])
+        if chatinfo["svoyak?"] == True:
+            chatinfo["svoyak?"] = False
+            fulllist[str(update.effective_chat.id)] = chatinfo
+            writetojson(fulllist)
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Пинг роли gosvoyak по плюсу выключен")
+        else:
+            chatinfo["svoyak?"] = True
+            print(chatinfo["svoyak?"])
+            fulllist[str(update.effective_chat.id)] = chatinfo
+            writetojson(fulllist)
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Пинг роли gosvoyak по плюсу включён")
+    else:
+        chatinfo["svoyak?"] = True
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Пинг роли gosvoyak по плюсу включён")
+        fulllist[str(update.effective_chat.id)] = chatinfo
+        writetojson(fulllist)
+
+def turnSvoyakNoMsg(chatinfo):
+    if "svoyak?" in chatinfo:
+        print("in")
+        print(chatinfo["svoyak?"])
+        if chatinfo["svoyak?"] == True:
+            chatinfo["svoyak?"] = False
+            return chatinfo
+        else:
+            chatinfo["svoyak?"] = True
+            return chatinfo
+    else:
+        chatinfo["svoyak?"] = True
+        return chatinfo
 
 def writetojson(data):
     with open('rolebot.json', 'w') as fp:
@@ -21,33 +59,25 @@ def writetojson(data):
 def ping(update, context):
     fulllist = read()
     roles = fulllist[str(update.effective_chat.id)]
+    svoyak = roles["svoyak?"]
+    print(roles)
     pingtxt = ""
     ct = 0
-    isInAll = False
     listofusers = []
     text = update.message.text
     if text[0] == '+':
-        if "gosvoyak" in roles:
-            listofusers = roles["gosvoyak"]
-        else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text = "Роли gosvoyak не существует")
+        print("in")
+        if svoyak == True:
+            if "gosvoyak" in roles:
+                listofusers = roles["gosvoyak"] 
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text = "Роли gosvoyak не существует")
     elif text[0] == "@":
         text = text[1:]
         if text in roles:
             for s in roles:
                 if s == text:
                     listofusers = roles[s]
-        else:
-            if "all" in roles:
-                for s in roles["all"]:
-                    print(text)
-                    print(text[:len(text)-1])
-                    if (s[1:] == text) or (s[1:] == text[:len(text)-1]):
-                        isInAll = True
-                        break;
-            if isInAll == False:
-                context.bot.send_message(chat_id=update.effective_chat.id, text = "Такой роли не существует")
-
     for user in listofusers:
             ct += 1
             if ct < 8:
@@ -163,6 +193,7 @@ def main():
     updater = Updater("5383392389:AAHbOgPgnkkL_qxBPLlvGCvM1KoOtgLy_is")
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("turnsvoyak", turnsvoyak))
     dp.add_handler(CommandHandler("add", addtorole))
     dp.add_handler(CommandHandler("newrole", newrole))
     dp.add_handler(CommandHandler("rolelist", listofroles))
