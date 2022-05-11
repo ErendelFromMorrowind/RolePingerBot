@@ -4,7 +4,6 @@ from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Этот бот умеет создавать роли и пинговать всех людей, которые добавлены к этой роли\n\nОчень рекомендуется создать роль all и добавить туда всех участников чата, чтобы бот не считал их несуществующей ролью.\nЧтобы вызывать людей по + для игры в свою игру, создайте роль \"gosvoyak\"")
     fulllist = read()
-    print(fulllist[str(update.effective_chat.id)])
     if (str(update.effective_chat.id) in fulllist) == False:
         fulllist[str(update.effective_chat.id)] = {}
         fulllist[str(update.effective_chat.id)]["svoyak"] = True
@@ -19,8 +18,6 @@ def turnsvoyak(update, context):
     fulllist = read()
     chatinfo = fulllist[str(update.effective_chat.id)]
     if "svoyak?" in chatinfo:
-        print("in")
-        print(chatinfo["svoyak?"])
         if chatinfo["svoyak?"] == True:
             chatinfo["svoyak?"] = False
             fulllist[str(update.effective_chat.id)] = chatinfo
@@ -28,7 +25,6 @@ def turnsvoyak(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text="Пинг роли gosvoyak по плюсу выключен")
         else:
             chatinfo["svoyak?"] = True
-            print(chatinfo["svoyak?"])
             fulllist[str(update.effective_chat.id)] = chatinfo
             writetojson(fulllist)
             context.bot.send_message(chat_id=update.effective_chat.id, text="Пинг роли gosvoyak по плюсу включён")
@@ -40,8 +36,6 @@ def turnsvoyak(update, context):
 
 def turnSvoyakNoMsg(chatinfo):
     if "svoyak?" in chatinfo:
-        print("in")
-        print(chatinfo["svoyak?"])
         if chatinfo["svoyak?"] == True:
             chatinfo["svoyak?"] = False
             return chatinfo
@@ -60,13 +54,11 @@ def ping(update, context):
     fulllist = read()
     roles = fulllist[str(update.effective_chat.id)]
     svoyak = roles["svoyak?"]
-    print(roles)
     pingtxt = ""
     ct = 0
     listofusers = []
     text = update.message.text
     if text[0] == '+':
-        print("in")
         if svoyak == True:
             if "gosvoyak" in roles:
                 listofusers = roles["gosvoyak"] 
